@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Money Diary</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Money Diary</p>
+          <h1>Money Diary</h1>
+        </div>
+        <div class="top-actions">
+          <span class="plan-badge" id="planBadge">全機能無料</span>
+          <button class="icon-button" id="todayButton" type="button" aria-label="今日へ移動">
+            今日
+          </button>
+        </div>
+      </header>
+
+      <section class="month-strip app-page" data-page="calendar" aria-label="月の切り替え">
+        <button class="nav-button" id="prevMonth" type="button" aria-label="前の月">‹</button>
+        <div class="month-title" id="monthTitle"></div>
+        <button class="nav-button" id="nextMonth" type="button" aria-label="次の月">›</button>
+      </section>
+
+      <section class="summary-panel app-page" data-page="calendar" aria-label="今月の集計">
+        <div>
+          <span>収入</span>
+          <strong id="incomeTotal">¥0</strong>
+        </div>
+        <div>
+          <span>支出</span>
+          <strong id="expenseTotal">¥0</strong>
+        </div>
+        <div>
+          <span>残り</span>
+          <strong id="balanceTotal">¥0</strong>
+        </div>
+      </section>
+
+      <section class="calendar-wrap app-page" data-page="calendar" aria-label="月間カレンダー">
+        <div class="weekdays">
+          <span>月</span>
+          <span>火</span>
+          <span>水</span>
+          <span>木</span>
+          <span>金</span>
+          <span>土</span>
+          <span>日</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <section class="day-sheet app-page is-hidden" data-page="daily" aria-label="選択した日の入力">
+        <div class="sheet-head">
+          <div>
+            <p class="eyebrow">Daily Note</p>
+            <h2 id="selectedDateTitle"></h2>
+          </div>
+          <button class="text-button" id="clearDayButton" type="button">この日を空にする</button>
+        </div>
+
+        <form class="entry-form" id="entryForm">
+          <div class="segmented" role="group" aria-label="収支種別">
+            <label>
+              <input type="radio" name="type" value="expense" checked />
+              <span>支出</span>
+            </label>
+            <label>
+              <input type="radio" name="type" value="income" />
+              <span>収入</span>
+            </label>
+          </div>
+
+          <label class="field">
+            <span>内容</span>
+            <input id="entryTitle" type="text" placeholder="ランチ、給料、日用品など" required />
+          </label>
+
+          <div class="form-row">
+            <label class="field">
+              <span>金額</span>
+              <input id="entryAmount" type="number" min="1" inputmode="numeric" placeholder="1200" required />
+            </label>
+            <label class="field">
+              <span>カテゴリ</span>
+              <select id="entryCategory">
+                <option>食費</option>
+                <option>日用品</option>
+                <option>交通</option>
+                <option>住まい</option>
+                <option>趣味</option>
+                <option>美容</option>
+                <option>医療</option>
+                <option>収入</option>
+                <option>その他</option>
+              </select>
+            </label>
+          </div>
+
+          <button class="primary-button" type="submit">書き込む</button>
+        </form>
+
+        <ul class="entry-list" id="entryList"></ul>
+
+        <section class="receipt-panel" aria-label="レシート読み取り">
+          <div class="sheet-head">
+            <div>
+              <p class="eyebrow">Premium Receipt</p>
+              <h2>レシート読み取り</h2>
+            </div>
+            <span class="premium-badge">開放中</span>
+          </div>
+
+          <div class="premium-lock">
+            <strong>全機能無料で使えます</strong>
+            <span>レシート画像から日付、時間、店舗、金額を読み取り、重複候補を確認してから家計簿に追加できます。</span>
+            <button class="small-button" type="button" disabled>開放中</button>
+          </div>
+
+          <div class="receipt-uploader">
+            <label class="upload-box">
+              <input id="receiptImage" type="file" accept="image/*" />
+              <span>画像を選ぶ</span>
+            </label>
+            <img id="receiptPreview" alt="アップロードしたレシート" hidden />
+          </div>
+
+          <div class="receipt-status" id="receiptStatus">画像を選ぶと読み取り候補を作ります。</div>
+
+          <form class="receipt-form" id="receiptForm">
+            <div class="form-row">
+              <label class="field">
+                <span>購入日</span>
+                <input id="receiptDate" type="date" required />
+              </label>
+              <label class="field">
+                <span>時間</span>
+                <input id="receiptTime" type="time" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label class="field">
+                <span>店舗</span>
+                <input id="receiptStore" type="text" placeholder="コンビニ、スーパーなど" required />
+              </label>
+              <label class="field">
+                <span>合計金額</span>
+                <input id="receiptAmount" type="number" min="1" inputmode="numeric" placeholder="1280" required />
+              </label>
+            </div>
+            <label class="field">
+              <span>カテゴリ</span>
+              <select id="receiptCategory"></select>
+            </label>
+            <label class="field receipt-raw-field">
+              <span>読み取りテキスト</span>
+              <textarea id="receiptRawText" placeholder="OCR結果がここに入ります。必要なら手直しできます。"></textarea>
+            </label>
+            <div class="duplicate-box" id="duplicateBox" hidden></div>
+            <button class="primary-button" id="receiptSubmit" type="submit">家計簿に追加</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="category-panel app-page is-hidden" data-page="month" aria-label="カテゴリ別支出">
+        <div class="sheet-head">
+          <div>
+            <p class="eyebrow">Monthly Index</p>
+            <h2>カテゴリ別</h2>
+          </div>
+        </div>
+
+        <form class="category-form" id="categoryForm">
+          <label class="field">
+            <span>カテゴリ名</span>
+            <input id="categoryName" type="text" placeholder="カフェ、推し活、学びなど" required />
+          </label>
+          <label class="field color-field">
+            <span>色</span>
+            <input id="categoryColor" type="color" value="#d9a441" aria-label="カテゴリの色" />
+          </label>
+          <label class="field">
+            <span>月の目安</span>
+            <input id="categoryBudget" type="number" min="0" inputmode="numeric" placeholder="30000" />
+          </label>
+          <button class="small-button" type="submit">追加</button>
+        </form>
+
+        <div class="category-chip-list" id="categoryChipList" aria-label="登録済みカテゴリ"></div>
+        <div class="category-list" id="categoryList"></div>
+      </section>
+
+      <section class="monthly-panel app-page is-hidden" data-page="month" aria-label="月別の収支">
+        <div class="sheet-head">
+          <div>
+            <p class="eyebrow">Monthly Flow</p>
+            <h2>月別の収支</h2>
+          </div>
+        </div>
+        <div class="monthly-list" id="monthlyList"></div>
+      </section>
+
+      <section class="plan-panel app-page is-hidden" data-page="future" aria-label="出費予定">
+        <div class="sheet-head">
+          <div>
+            <p class="eyebrow">Future Notes</p>
+            <h2>出費予定</h2>
+          </div>
+          <span class="premium-badge">開放中</span>
+        </div>
+
+        <div class="premium-lock">
+          <strong>全機能無料で使えます</strong>
+          <span>出費予定やカード引き落とし予定をカレンダーに出して、期日後は自動で非表示にできます。</span>
+          <button class="small-button" type="button" disabled>開放中</button>
+        </div>
+
+        <form class="plan-form" id="planForm">
+          <div class="form-row">
+            <label class="field">
+              <span>日付</span>
+              <input id="planDate" type="date" required />
+            </label>
+            <label class="field">
+              <span>金額</span>
+              <input id="planAmount" type="number" min="1" inputmode="numeric" placeholder="5000" required />
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field">
+              <span>内容</span>
+              <input id="planTitle" type="text" placeholder="飲み会、旅行、買い物など" required />
+            </label>
+            <label class="field">
+              <span>カテゴリ</span>
+              <select id="planCategory"></select>
+            </label>
+          </div>
+          <button class="primary-button" type="submit">予定に書き込む</button>
+        </form>
+
+        <form class="card-form" id="cardForm">
+          <div class="form-row">
+            <label class="field">
+              <span>カード名</span>
+              <input id="cardName" type="text" placeholder="メインカードなど" required />
+            </label>
+            <label class="field">
+              <span>引き落とし日</span>
+              <input id="cardDate" type="date" required />
+            </label>
+          </div>
+          <label class="field">
+            <span>引き落とし予定額</span>
+            <input id="cardAmount" type="number" min="1" inputmode="numeric" placeholder="32000" required />
+          </label>
+          <button class="small-button" type="submit">カード予定を追加</button>
+        </form>
+
+        <ul class="plan-list" id="planList"></ul>
+      </section>
+
+      <section class="loan-panel app-page is-hidden" data-page="loans" aria-label="貸借台帳">
+        <div class="sheet-head">
+          <div>
+            <p class="eyebrow">Borrow & Lend</p>
+            <h2>貸借</h2>
+          </div>
+          <span class="premium-badge">開放中</span>
+        </div>
+
+        <div class="premium-lock">
+          <strong>全機能無料で使えます</strong>
+          <span>立て替え、借りたお金、精算済みの管理をまとめて見える化できます。</span>
+          <button class="small-button" type="button" disabled>開放中</button>
+        </div>
+
+        <section class="loan-summary" aria-label="貸借の集計">
+          <div>
+            <span>返してもらう</span>
+            <strong id="lentTotal">¥0</strong>
+          </div>
+          <div>
+            <span>返す</span>
+            <strong id="borrowedTotal">¥0</strong>
+          </div>
+          <div>
+            <span>差額</span>
+            <strong id="loanBalanceTotal">¥0</strong>
+          </div>
+        </section>
+
+        <form class="loan-form" id="loanForm">
+          <div class="segmented warm" role="group" aria-label="貸借種別">
+            <label>
+              <input type="radio" name="loanType" value="lent" checked />
+              <span>立て替えた</span>
+            </label>
+            <label>
+              <input type="radio" name="loanType" value="borrowed" />
+              <span>借りた</span>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="field">
+              <span>相手</span>
+              <input id="loanPerson" type="text" placeholder="友人、家族、お店など" required />
+            </label>
+            <label class="field">
+              <span>金額</span>
+              <input id="loanAmount" type="number" min="1" inputmode="numeric" placeholder="3000" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>内容</span>
+            <input id="loanMemo" type="text" placeholder="チケット代、食事代、カード返済など" required />
+          </label>
+
+          <button class="primary-button" type="submit">台帳に書き込む</button>
+        </form>
+
+        <ul class="loan-list" id="loanList"></ul>
+      </section>
+
+      <nav class="page-tabs" aria-label="下部ページ切り替え">
+        <button class="page-tab is-active" data-page-target="calendar" type="button">カレンダー</button>
+        <button class="page-tab" data-page-target="daily" type="button">Daily</button>
+        <button class="page-tab" data-page-target="month" type="button">Month</button>
+        <button class="page-tab" data-page-target="future" type="button">Future</button>
+        <button class="page-tab" data-page-target="loans" type="button">貸借</button>
+      </nav>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
