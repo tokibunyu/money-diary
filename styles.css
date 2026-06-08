@@ -914,16 +914,49 @@ h2 {
 .category-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   min-height: 34px;
   max-width: 100%;
   border: 1px solid color-mix(in srgb, var(--category-color), var(--rule) 45%);
   border-radius: 999px;
-  padding: 0 10px;
+  padding: 0 4px 0 10px;
   color: var(--ink);
   background: color-mix(in srgb, var(--category-color), white 84%);
   font-size: 0.8rem;
   font-weight: 800;
+}
+
+.category-edit-button,
+.category-delete-button {
+  border: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.category-edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  min-width: 0;
+  padding: 0;
+  font-weight: inherit;
+}
+
+.category-delete-button {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  margin-left: 4px;
+  border-radius: 50%;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.category-delete-button:hover {
+  color: #fff;
+  background: var(--rose);
 }
 
 .category-list {

@@ -380,13 +380,20 @@ function renderCategoryOptions() {
     }
   }
 
+  if (categories.length === 0) {
+    const option = document.createElement("option");
+    option.value = "その他";
+    option.textContent = "その他";
+    entryCategory.append(option);
+  }
+
   if (categories.some((category) => category.name === selected)) {
     entryCategory.value = selected;
   }
-  if (categories.some((category) => category.name === selectedPlan)) {
+  if ([...planCategory.options].some((option) => option.value === selectedPlan)) {
     planCategory.value = selectedPlan;
   }
-  if (categories.some((category) => category.name === selectedReceipt)) {
+  if ([...receiptCategory.options].some((option) => option.value === selectedReceipt)) {
     receiptCategory.value = selectedReceipt;
   }
 
@@ -398,22 +405,42 @@ function renderCategoryChips() {
   categoryChipList.innerHTML = "";
 
   for (const category of categories) {
-    const chip = document.createElement("button");
-    chip.type = "button";
+    const chip = document.createElement("span");
     chip.className = "category-chip";
     chip.style.setProperty("--category-color", category.color);
     chip.innerHTML = `
-      <span class="color-dot"></span>
-      <span>${escapeHtml(category.name)}</span>
+      <button class="category-edit-button" type="button" aria-label="${escapeHtml(category.name)}を編集">
+        <span class="color-dot"></span>
+        <span>${escapeHtml(category.name)}</span>
+      </button>
+      <button class="category-delete-button" type="button" aria-label="${escapeHtml(category.name)}を削除">×</button>
     `;
-    chip.addEventListener("click", () => {
+    chip.querySelector(".category-edit-button").addEventListener("click", () => {
       categoryName.value = category.name;
       categoryColor.value = category.color;
       categoryBudget.value = category.budget || "";
       categoryName.focus();
     });
+    chip.querySelector(".category-delete-button").addEventListener("click", () => {
+      deleteCategory(category.name);
+    });
     categoryChipList.append(chip);
   }
+}
+
+function deleteCategory(name) {
+  categories = categories.filter((category) => category.name !== name);
+  saveCategories();
+
+  if (entryCategory.value === name) entryCategory.value = "";
+  if (planCategory.value === name) planCategory.value = "";
+  if (receiptCategory.value === name) receiptCategory.value = "";
+  if (categoryName.value.trim() === name) {
+    categoryForm.reset();
+    categoryColor.value = "#d9a441";
+  }
+
+  render();
 }
 
 function renderCalendar() {
@@ -769,10 +796,11 @@ function saveEntries() {
 
 function loadCategories() {
   try {
-    const saved = JSON.parse(localStorage.getItem(CATEGORY_STORAGE_KEY)) || [];
-    return mergeCategories(DEFAULT_CATEGORIES, saved, entries);
+    const saved = JSON.parse(localStorage.getItem(CATEGORY_STORAGE_KEY));
+    if (Array.isArray(saved)) return mergeCategories(saved);
+    return mergeCategories(DEFAULT_CATEGORIES);
   } catch {
-    return mergeCategories(DEFAULT_CATEGORIES, [], entries);
+    return mergeCategories(DEFAULT_CATEGORIES);
   }
 }
 
@@ -835,7 +863,7 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
-function mergeCategories(defaults, saved, currentEntries) {
+function mergeCategories(source) {
   const categoryMap = new Map();
   const addCategory = (category) => {
     const name = typeof category === "string" ? category : category?.name;
@@ -845,13 +873,7 @@ function mergeCategories(defaults, saved, currentEntries) {
     categoryMap.set(name, { name, color: color || "#9d9588", budget });
   };
 
-  defaults.forEach(addCategory);
-  saved.forEach(addCategory);
-  currentEntries.forEach((entry) => {
-    if (!categoryMap.has(entry.category)) {
-      addCategory({ name: entry.category, color: "#9d9588", budget: 0 });
-    }
-  });
+  source.forEach(addCategory);
   return [...categoryMap.values()];
 }
 
