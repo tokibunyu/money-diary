@@ -74,6 +74,15 @@ button {
   line-height: 1.7;
 }
 
+.auth-email-form {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-create-button {
+  width: 100%;
+}
+
 .auth-google-button {
   width: 100%;
 }

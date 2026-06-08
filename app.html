@@ -7,12 +7,24 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body class="auth-locked">
-    <section class="auth-gate" id="authGate" aria-label="Googleログイン">
+    <section class="auth-gate" id="authGate" aria-label="ログイン">
       <div class="auth-card">
         <p class="eyebrow">Money Diary</p>
-        <h1>Googleログイン</h1>
-        <p>Money Diaryを使うにはGoogleアカウントでログインしてください。</p>
-        <button class="primary-button auth-google-button" id="googleGateButton" type="button">Googleでログイン</button>
+        <h1>ログイン</h1>
+        <p>Money Diaryを使うにはメールアドレスでログインしてください。LINEから開いた場合も使えます。</p>
+        <form class="auth-email-form" id="emailAuthForm">
+          <label class="field">
+            <span>メールアドレス</span>
+            <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <label class="field">
+            <span>パスワード</span>
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="6文字以上" minlength="6" required />
+          </label>
+          <button class="primary-button" type="submit">ログイン</button>
+          <button class="small-button auth-create-button" id="emailCreateButton" type="button">新規登録</button>
+        </form>
+        <button class="google-button auth-google-button" id="googleGateButton" type="button">Googleでもログイン</button>
         <span class="auth-status" id="authGateStatus">ログインするとアプリが開きます。</span>
       </div>
     </section>

@@ -34,8 +34,9 @@
 Firebase Consoleで次を確認します。
 
 1. Authenticationを開きます。
-2. Sign-in methodでGoogleを有効にします。
-3. SettingsのAuthorized domainsに公開URLのドメインを追加します。
+2. Sign-in methodでEmail/Passwordを有効にします。
+3. Googleログインも使う場合はGoogleを有効にします。
+4. SettingsのAuthorized domainsに公開URLのドメインを追加します。
 
 例:
 

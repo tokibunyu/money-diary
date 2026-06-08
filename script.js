@@ -97,6 +97,10 @@ const googleAccountStatus = document.querySelector("#googleAccountStatus");
 const googleLinkButton = document.querySelector("#googleLinkButton");
 const googleGateButton = document.querySelector("#googleGateButton");
 const authGateStatus = document.querySelector("#authGateStatus");
+const emailAuthForm = document.querySelector("#emailAuthForm");
+const emailCreateButton = document.querySelector("#emailCreateButton");
+const authEmail = document.querySelector("#authEmail");
+const authPassword = document.querySelector("#authPassword");
 let pendingReceiptFile = null;
 let pendingDuplicate = null;
 
@@ -125,6 +129,15 @@ if (accountForm) {
 
 if (googleLinkButton) googleLinkButton.addEventListener("click", handleGoogleAuthClick);
 if (googleGateButton) googleGateButton.addEventListener("click", handleGoogleAuthClick);
+if (emailAuthForm) {
+  emailAuthForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    handleEmailAuth("sign-in");
+  });
+}
+if (emailCreateButton) {
+  emailCreateButton.addEventListener("click", () => handleEmailAuth("create"));
+}
 
 document.querySelectorAll(".page-tab").forEach((button) => {
   button.addEventListener("click", () => {
@@ -410,6 +423,42 @@ async function handleGoogleAuthClick() {
   }
 }
 
+async function handleEmailAuth(mode) {
+  if (!googleAuth) {
+    setAuthLocked(true, "メールログインの準備ができていません。Firebase設定を確認してください。");
+    return;
+  }
+
+  const email = normalizeEmail(authEmail?.value || "");
+  const password = authPassword?.value || "";
+  if (!email || password.length < 6) {
+    setAuthLocked(true, "メールアドレスと6文字以上のパスワードを入力してください。");
+    return;
+  }
+
+  try {
+    if (authGateStatus) authGateStatus.textContent = mode === "create" ? "アカウントを作成しています。" : "ログインしています。";
+    if (mode === "create") {
+      await googleAuth.createUserWithEmailAndPassword(email, password);
+    } else {
+      await googleAuth.signInWithEmailAndPassword(email, password);
+    }
+    if (authPassword) authPassword.value = "";
+  } catch (error) {
+    setAuthLocked(true, getEmailAuthErrorMessage(error));
+  }
+}
+
+function getEmailAuthErrorMessage(error) {
+  const code = error?.code || "";
+  if (code.includes("auth/email-already-in-use")) return "このメールアドレスは登録済みです。ログインを押してください。";
+  if (code.includes("auth/user-not-found") || code.includes("auth/invalid-credential")) return "メールアドレスまたはパスワードが違います。";
+  if (code.includes("auth/wrong-password")) return "パスワードが違います。";
+  if (code.includes("auth/weak-password")) return "パスワードは6文字以上にしてください。";
+  if (code.includes("auth/operation-not-allowed")) return "FirebaseでEmail/Passwordログインを有効にしてください。";
+  return "メールログインに失敗しました。入力内容を確認してください。";
+}
+
 function setAuthLocked(isLocked, message = "") {
   document.body.classList.toggle("auth-locked", isLocked);
   if (authGateStatus && message) {
@@ -419,7 +468,7 @@ function setAuthLocked(isLocked, message = "") {
 
 function setupFirebaseAuth() {
   if (!window.firebase?.initializeApp || !window.firebase?.auth) {
-    setAuthLocked(true, "Googleログインの読み込みに失敗しました。公開URLで開き直してください。");
+    setAuthLocked(true, "ログイン機能の読み込みに失敗しました。公開URLで開き直してください。");
     return;
   }
 
