@@ -6,7 +6,17 @@
     <title>Money Diary</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
+  <body class="auth-locked">
+    <section class="auth-gate" id="authGate" aria-label="Googleログイン">
+      <div class="auth-card">
+        <p class="eyebrow">Money Diary</p>
+        <h1>Googleログイン</h1>
+        <p>Money Diaryを使うにはGoogleアカウントでログインしてください。</p>
+        <button class="primary-button auth-google-button" id="googleGateButton" type="button">Googleでログイン</button>
+        <span class="auth-status" id="authGateStatus">ログインするとアプリが開きます。</span>
+      </div>
+    </section>
+
     <main class="app-shell">
       <header class="top-bar">
         <div>
@@ -14,6 +24,8 @@
           <h1>Money Diary</h1>
         </div>
         <div class="top-actions">
+          <span class="google-badge" id="googleAccountStatus">Google未連携</span>
+          <button class="google-button" id="googleLinkButton" type="button">Google連携</button>
           <span class="plan-badge" id="planBadge">全機能無料</span>
           <button class="icon-button" id="todayButton" type="button" aria-label="今日へ移動">
             今日
@@ -339,6 +351,8 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>

@@ -29,6 +29,19 @@
 - LP: `/`
 - アプリ: `/app.html`
 
+## Google連携を使う場合
+
+Firebase Consoleで次を確認します。
+
+1. Authenticationを開きます。
+2. Sign-in methodでGoogleを有効にします。
+3. SettingsのAuthorized domainsに公開URLのドメインを追加します。
+
+例:
+
+- `money-diary.vercel.app`
+- 独自ドメインを使う場合はそのドメイン
+
 ## 注意
 
 現在のデータはブラウザ内に保存されます。

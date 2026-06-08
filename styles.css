@@ -38,6 +38,52 @@ button {
   cursor: pointer;
 }
 
+.auth-gate {
+  display: none;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px 14px;
+}
+
+.auth-locked .auth-gate {
+  display: grid;
+}
+
+.auth-locked .app-shell {
+  display: none;
+}
+
+.auth-card {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 430px);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+  font-size: clamp(1.8rem, 8vw, 2.45rem);
+}
+
+.auth-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.auth-google-button {
+  width: 100%;
+}
+
+.auth-status {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
 .app-shell {
   width: min(100%, 760px);
   margin: 0 auto;
@@ -113,6 +159,40 @@ button {
   font-size: 0.76rem;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.google-badge {
+  display: inline-grid;
+  min-height: 32px;
+  max-width: 180px;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 0 10px;
+  color: var(--muted);
+  background: #fffdf8;
+  font-size: 0.76rem;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-badge.is-linked {
+  border-color: rgba(67, 124, 118, 0.44);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.google-button {
+  min-height: 36px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 0 10px;
+  color: var(--ink);
+  background: #fffdf8;
+  font-size: 0.76rem;
+  font-weight: 900;
 }
 
 .page-tabs {

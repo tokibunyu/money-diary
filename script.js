@@ -5,7 +5,17 @@ const SCHEDULE_STORAGE_KEY = "techo-kakeibo-schedules";
 const RECEIPT_STORAGE_KEY = "techo-kakeibo-receipts";
 const ACCOUNT_STORAGE_KEY = "money-diary-account";
 const EARLY_ACCESS_STORAGE_KEY = "money-diary-early-access";
+const GOOGLE_ACCOUNT_STORAGE_KEY = "money-diary-google-account";
 const ALL_FEATURES_UNLOCKED = true;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB4C8A0Y58l0OBB5qHBJJkPmg9r4CO2VBc",
+  authDomain: "money-diary-be4c6.firebaseapp.com",
+  projectId: "money-diary-be4c6",
+  storageBucket: "money-diary-be4c6.firebasestorage.app",
+  messagingSenderId: "450008950641",
+  appId: "1:450008950641:web:0db161d5859f0414d0b8d0",
+  measurementId: "G-WX8K5EKV6M",
+};
 const DEFAULT_CATEGORIES = [
   { name: "食費", color: "#d9a441", budget: 45000 },
   { name: "日用品", color: "#7f9f75", budget: 12000 },
@@ -28,7 +38,9 @@ let schedules = loadSchedules();
 let receipts = loadReceipts();
 let activePage = "calendar";
 let accountEmailValue = loadAccountEmail();
+let googleAccount = loadGoogleAccount();
 let isPremiumUser = ALL_FEATURES_UNLOCKED;
+let googleAuth = null;
 
 const calendarGrid = document.querySelector("#calendarGrid");
 const monthTitle = document.querySelector("#monthTitle");
@@ -81,11 +93,17 @@ const balanceTotal = document.querySelector("#balanceTotal");
 const accountForm = document.querySelector("#accountForm");
 const accountEmail = document.querySelector("#accountEmail");
 const planBadge = document.querySelector("#planBadge");
+const googleAccountStatus = document.querySelector("#googleAccountStatus");
+const googleLinkButton = document.querySelector("#googleLinkButton");
+const googleGateButton = document.querySelector("#googleGateButton");
+const authGateStatus = document.querySelector("#authGateStatus");
 let pendingReceiptFile = null;
 let pendingDuplicate = null;
 
 if (accountEmail) accountEmail.value = accountEmailValue;
 updatePlanState();
+setupFirebaseAuth();
+renderGoogleAccount();
 
 if (accountForm) {
   accountForm.addEventListener("submit", (event) => {
@@ -104,6 +122,9 @@ if (accountForm) {
     updatePlanState();
   });
 }
+
+if (googleLinkButton) googleLinkButton.addEventListener("click", handleGoogleAuthClick);
+if (googleGateButton) googleGateButton.addEventListener("click", handleGoogleAuthClick);
 
 document.querySelectorAll(".page-tab").forEach((button) => {
   button.addEventListener("click", () => {
@@ -353,6 +374,81 @@ function updatePlanState() {
   }
 }
 
+function renderGoogleAccount() {
+  if (!googleAccountStatus || !googleLinkButton) return;
+
+  const isLinked = Boolean(googleAccount.email);
+  googleAccountStatus.classList.toggle("is-linked", isLinked);
+  googleAccountStatus.textContent = isLinked ? googleAccount.email : "Google未連携";
+  googleLinkButton.textContent = isLinked ? "連携解除" : "Google連携";
+}
+
+async function handleGoogleAuthClick() {
+  if (googleAccount.email) {
+    if (googleAuth) {
+      await googleAuth.signOut();
+    }
+    googleAccount = { email: "", name: "", uid: "", linkedAt: 0 };
+    saveGoogleAccount();
+    setAuthLocked(true, "ログアウトしました。再度Googleでログインしてください。");
+    renderGoogleAccount();
+    return;
+  }
+
+  if (!googleAuth || !window.firebase?.auth?.GoogleAuthProvider) {
+    setAuthLocked(true, "Googleログインの準備ができていません。公開URLとFirebase設定を確認してください。");
+    return;
+  }
+
+  try {
+    if (authGateStatus) authGateStatus.textContent = "Googleログインを開いています。";
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    await googleAuth.signInWithPopup(provider);
+  } catch {
+    setAuthLocked(true, "Googleログインに失敗しました。Firebaseの許可ドメインに公開URLが入っているか確認してください。");
+  }
+}
+
+function setAuthLocked(isLocked, message = "") {
+  document.body.classList.toggle("auth-locked", isLocked);
+  if (authGateStatus && message) {
+    authGateStatus.textContent = message;
+  }
+}
+
+function setupFirebaseAuth() {
+  if (!window.firebase?.initializeApp || !window.firebase?.auth) {
+    setAuthLocked(true, "Googleログインの読み込みに失敗しました。公開URLで開き直してください。");
+    return;
+  }
+
+  if (!window.firebase.apps.length) {
+    window.firebase.initializeApp(FIREBASE_CONFIG);
+  }
+
+  googleAuth = window.firebase.auth();
+  googleAuth.onAuthStateChanged((user) => {
+    if (!user) {
+      googleAccount = { email: "", name: "", uid: "", linkedAt: 0 };
+      saveGoogleAccount();
+      setAuthLocked(true, "ログインするとアプリが開きます。");
+      renderGoogleAccount();
+      return;
+    }
+
+    googleAccount = {
+      email: normalizeEmail(user.email || ""),
+      name: user.displayName || "",
+      uid: user.uid || "",
+      linkedAt: Date.now(),
+    };
+    saveGoogleAccount();
+    setAuthLocked(false);
+    renderGoogleAccount();
+  });
+}
+
 function renderCategoryOptions() {
   const selected = entryCategory.value;
   const selectedPlan = planCategory.value;
@@ -478,7 +574,9 @@ function renderCalendar() {
       if (date.getMonth() !== viewDate.getMonth()) {
         viewDate = new Date(date.getFullYear(), date.getMonth(), 1);
       }
+      activePage = "daily";
       render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     button.innerHTML = `
@@ -842,6 +940,24 @@ function loadReceipts() {
 
 function saveReceipts() {
   localStorage.setItem(RECEIPT_STORAGE_KEY, JSON.stringify(receipts));
+}
+
+function loadGoogleAccount() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GOOGLE_ACCOUNT_STORAGE_KEY));
+    return {
+      email: normalizeEmail(saved?.email || ""),
+      name: saved?.name || "",
+      uid: saved?.uid || "",
+      linkedAt: Number(saved?.linkedAt || 0),
+    };
+  } catch {
+    return { email: "", name: "", uid: "", linkedAt: 0 };
+  }
+}
+
+function saveGoogleAccount() {
+  localStorage.setItem(GOOGLE_ACCOUNT_STORAGE_KEY, JSON.stringify(googleAccount));
 }
 
 function loadAccountEmail() {
